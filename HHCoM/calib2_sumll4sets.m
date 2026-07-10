@@ -1,0 +1,71 @@
+% Parameter estimation
+
+% Calculates the negative log likelihood of a sample of potential parameter sets
+% Accepts:
+% 1) paramSetIdx (index in larger sample matrix to start selection of sub-set)
+% Saves:
+% 1) File: negSumLogL_calib_[date].dat (negative log likelihood for each parameter set in sub-set)
+
+function calib2_sumll4sets(paramSetIdx , tstep_abc , date_abc)
+
+%delete(gcp('nocreate'));
+
+paramSetIdx = 1;
+tstep_abc = 6;
+date_abc = '22Apr20Ph2V11';
+username = 'aguha'; %CHANGE ME IF NEEDED
+
+t_curr = tstep_abc;
+date = date_abc;
+
+%% Cluster information
+% pc = parcluster('local');    % create a local cluster object
+% pc.JobStorageLocation = strcat('/gscratch/csde/guiliu' , '/' , getenv('SLURM_JOB_ID'))    % explicitly set the JobStorageLocation to the temp directory that was created in the sbatch script
+% numCPUperNode = str2num(getenv('SLURM_CPUS_ON_NODE'))
+% parpool(pc , numCPUperNode)    % start the pool with max number workers
+
+%% Cluster information for ERISONE COMMENT OUT WHEN RUNNING LOCALLY
+%pc = parcluster('local'); 
+%pc.JobStorageLocation = getenv('TMPDIR'); % how to pull job id?
+%numWorkers = 9; % to run the model on 9 parallel workers 
+%parpool(pc, numWorkers)
+
+
+%% Load parameters
+paramDir = [pwd ,'/Params/'];
+paramSetMatrix = load([paramDir,'stochasticParamsets.dat']);
+nPrlSets = 25; %numCPUperNode; %16;
+subMatrixInds = [paramSetIdx : (paramSetIdx + nPrlSets - 1)];
+pIdx = [10, 35, 38];
+
+[paramsAll] = genParamStruct();
+paramsSub = cell(length(pIdx),1);
+startIdx = 1;
+for s = 1 : length(pIdx)
+    paramsSub{s}.length = paramsAll{pIdx(s)}.length;
+    paramsSub{s}.inds = (startIdx : (startIdx + paramsSub{s}.length - 1));
+    startIdx = startIdx + paramsSub{s}.length;
+end
+
+%% Obtain model output for each set of sampled parameters
+%
+%negSumLogLSet = zeros(nPrlSets,1); %CHANGE ME ** comment out when runng locally
+parfor n = 1 % : nPrlSets  % CHANGE ME ** Comment out when running locally
+    paramSet = paramSetMatrix(:,subMatrixInds(n));
+    futureSimS1(1 , pIdx , paramsSub , paramSet , (paramSetIdx + n - 1) , tstep_abc , date_abc);
+    %historicalSim(1 , pIdx , paramsSub , paramSet , (paramSetIdx + n - 1)
+    %, tstep_abc , date_abc); CHANGE ME ** Comment out when running future
+    %negSumLogLSet(n,1) = negSumLogL;
+end
+
+%% Save parameter sets and negSumLogL values
+% formatOutput = zeros(nPrlSets+(nPrlSets/4) , 1);
+% paramSetIdxBY4 = [paramSetIdx : 4 : (paramSetIdx + nPrlSets - 1)];
+% nPrlSetsBY4 = [1 : 4 : (nPrlSets - 1)];
+% for i = 1 : (nPrlSets/4)
+%     formatOutput(nPrlSetsBY4(i) + (i-1) : nPrlSetsBY4(i) + 4 + (i-1) , 1) = [paramSetIdxBY4(i) ; negSumLogLSet(((i-1)*4+1 : i*4) , 1)];
+% end
+% 
+% file = ['negSumLogL_calib_' , date , '_' , num2str(t_curr) , '.dat'];
+% paramDir = [pwd , '/Params/'];
+% dlmwrite([paramDir, file] , formatOutput , 'delimiter' , ',' , 'roffset' , 1 , 'coffset' , 0 , '-append' , 'precision' , 9)

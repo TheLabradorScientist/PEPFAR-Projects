@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "c:\Users\aguha\.vscode\extensions\ms-python.python-2025.18.0-win32-x64\python_files\shell_exec.py", line 25, in <module>
+    subprocess.check_call(shell_args, stdout=sys.stdout, stderr=sys.stderr)
+  File "C:\Program Files\Python312\Lib\subprocess.py", line 413, in check_call
+    raise CalledProcessError(retcode, cmd)
+subprocess.CalledProcessError: Command '['E:/HIVE-User-Projects/LMF-only/Ashna/PEPFAR Projects/.venv/Scripts/python.exe', '-m', 'pip', 'install', '-U']' returned non-zero exit status 1.
