@@ -17,3 +17,6 @@ __pycache__/
 
 # Nested Git repository
 HHCoM/.git/
+
+# Runs
+runs/
